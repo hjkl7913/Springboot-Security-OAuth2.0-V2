@@ -1,5 +1,6 @@
 package com.cos.securityex01.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -7,11 +8,17 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+
+import com.cos.securityex01.config.auth.oauth.PrincipalOauth2UserService;
 
 @Configuration //IOC 빈(bean = 객체) 을 등록
 @EnableWebSecurity // 필터 체인 관리 시작 어노테이션 (시큐리티 필터체인을 전체적으로 관리 할수있다.)
 @EnableGlobalMethodSecurity(prePostEnabled = true , securedEnabled = true) //특정 주소 접근시 (컨트롤러 접근전에) 권한 및 인증을 미리 체크  
 public class SecurityConfig extends WebSecurityConfigurerAdapter{ //원하는것만 오버라이딩해서 관리가능
+	
+	@Autowired
+	private PrincipalOauth2UserService principalOauth2UserService;
 	
 	@Bean // 메서드를 IOC 등록 
 	public BCryptPasswordEncoder encodePwd() {
@@ -31,7 +38,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{ //원하는것
 			.formLogin()
 			.loginPage("/login") // '/user', '/admin' 을 login페이지로 연결되도록 한다.
 			.loginProcessingUrl("/loginProc") // '/loginProc' 주소가 들어왔을때 Authentication Manager 타게 만들수 있음
-			.defaultSuccessUrl("/");
+			.defaultSuccessUrl("/")
+		.and()
+			.oauth2Login()
+			.loginPage("/login")
+			.userInfoEndpoint()
+			.userService(principalOauth2UserService);
+		
 	}
 	
 }
