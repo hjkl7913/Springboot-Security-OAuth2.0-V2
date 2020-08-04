@@ -31,10 +31,14 @@ spring:
       client:
         registration:
           google: # /oauth2/authorization/google 이주소를 동작하게 한다.
-            client-id: 244236019680-8cbtr2in30j1ibirghaa54gnfn7o4ehc.apps.googleusercontent.com
-            client-secret: Qc_XeKBHUOk14yWvVIJxOrmy
+            client-id: 발급받은 ID
+            client-secret: 발급받은 시크릿 키
             scope:
             - email
             - profile
+            
+        
+
+          
           
     

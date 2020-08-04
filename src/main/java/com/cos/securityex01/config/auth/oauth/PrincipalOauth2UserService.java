@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import com.cos.securityex01.config.auth.PrincipalDetails;
 import com.cos.securityex01.config.auth.oauth.provide.FacebookUserInfo;
 import com.cos.securityex01.config.auth.oauth.provide.GoogleUserInfo;
 import com.cos.securityex01.config.auth.oauth.provide.OAuth2UserInfo;
@@ -59,19 +60,38 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 		}
 		
 		
-		Optional<User> userOptional = userRepository.findByEmail(oAuth2UserInfo.getEmail());
-		
+		Optional<User> userOptional = userRepository.findByProviderAndProviderId(oAuth2UserInfo.getProvider(), oAuth2UserInfo.getProviderId());
+		System.out.println("userOptional : "+userOptional);
 		// 2. DB에 이사람있나?
 		
-		
-		
 		// 있으면?
+		
 		// --> 있으면 update (구글에서 정보가 바뀌었을수도 있으니까)해야함
 		
 		// 없으면?
+		
 		// --> 없으면 insert 해야함
 		
-		// return PrincipalDetails()
-		return oAuth2User;
+		User user;
+		
+		if(userOptional.isPresent()) {
+			user = userOptional.get();
+			// user가 존재하면 update 해주기
+			user.setEmail(oAuth2UserInfo.getEmail());
+			userRepository.save(user);
+		} else {
+			// user의 패스워드가 null이기 때문에 OAuth 유저는 일반적인 로그인을 할 수 없음.
+			user = User.builder()
+					.username(oAuth2UserInfo.getProvider() + "-" + oAuth2UserInfo.getProviderId())
+					.email(oAuth2UserInfo.getEmail())
+					.role("ROLE_USER")
+					.provider(oAuth2UserInfo.getProvider())
+					.providerId(oAuth2UserInfo.getProviderId())
+					.build();
+			userRepository.save(user);
+		}
+		
+		return new PrincipalDetails(user, oAuth2User.getAttributes());
+		//return oAuth2User;
 	}
 }
